@@ -50,7 +50,7 @@ class TinyCNN(nn.Module):
             return x, feature
         return x
 
-def fast_train_model(model, model_name, teacher_model=None, use_distillation=False, epochs=30):
+def fast_train_model(model, model_name, teacher_model=None, use_distillation=False, epochs=30, alpha=0.7, temperature=4):
     """快速训练模型（目标：10分钟内）"""
     print(f"🚀 开始快速训练 {model_name}...")
 
@@ -75,7 +75,7 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
 
     # 损失函数
     if use_distillation and teacher_model:
-        criterion = DistillationLoss(alpha=0.7, temperature=4)
+        criterion = DistillationLoss(alpha=alpha, temperature=temperature)
     else:
         criterion = nn.CrossEntropyLoss()
 
@@ -125,7 +125,10 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
 
             if test_acc > best_acc:
                 best_acc = test_acc
-                torch.save(model.state_dict(), f'{model_name}_best.pth')
+                if use_distillation:
+                    torch.save(model.state_dict(), f'../model_weights/{model_name}_distilled_best_{alpha}_{temperature}.pth')
+                else:
+                    torch.save(model.state_dict(), f'../model_weights/{model_name}_best.pth')
 
 
     print(f'🎉 {model_name} 训练完成! 最佳准确率: {best_acc:.2f}%')
