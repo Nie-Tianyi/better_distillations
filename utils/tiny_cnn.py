@@ -1,5 +1,3 @@
-from datetime import time
-
 import torch
 from torch import nn, optim
 from tqdm import tqdm
@@ -20,13 +18,11 @@ class TinyCNN(nn.Module):
             nn.BatchNorm2d(16),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),
-
             # 16x16x16 -> 8x8x32
             nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),
-
             # 8x8x32 -> 4x4x64
             nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
@@ -39,7 +35,7 @@ class TinyCNN(nn.Module):
             nn.Linear(64 * 4 * 4, 256),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
-            nn.Linear(256, num_classes)
+            nn.Linear(256, num_classes),
         )
 
     def forward(self, x, return_features=False):
@@ -51,7 +47,16 @@ class TinyCNN(nn.Module):
             return x, feature
         return x
 
-def fast_train_model(model, model_name, teacher_model=None, use_distillation=False, epochs=30, alpha=0.7, temperature=4):
+
+def fast_train_model(
+    model,
+    model_name,
+    teacher_model=None,
+    use_distillation=False,
+    epochs=30,
+    alpha=0.7,
+    temperature=4,
+):
     """快速训练模型（目标：10分钟内）"""
     print(f"🚀 开始快速训练 {model_name}...")
 
@@ -91,7 +96,6 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
         total = 0
 
         for batch_idx, (inputs, targets) in enumerate(trainloader):
-
             inputs, targets = inputs.to(device), targets.to(device)
 
             optimizer.zero_grad()
@@ -111,7 +115,9 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
             optimizer.step()
 
             running_loss += loss.item()
-            _, predicted = outputs.max(1) if not use_distillation else student_outputs.max(1)
+            _, predicted = (
+                outputs.max(1) if not use_distillation else student_outputs.max(1)
+            )
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
@@ -121,20 +127,29 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
         # 快速测试（每5个epoch测试一次以节省时间）
         if epoch % 5 == 0 or epoch == epochs - 1:
             test_acc = fast_test_model(model, testloader, device)
-            print(f'Epoch {epoch+1}/{epochs}: Loss = {running_loss/len(trainloader):.3f}, '
-                  f'Train Acc = {100.*correct/total:.2f}%, Test Acc = {test_acc:.2f}%')
+            print(
+                f"Epoch {epoch + 1}/{epochs}: Loss = {running_loss / len(trainloader):.3f}, "
+                f"Train Acc = {100.0 * correct / total:.2f}%, Test Acc = {test_acc:.2f}%"
+            )
 
             if test_acc > best_acc:
                 best_acc = test_acc
                 if use_distillation:
-                    torch.save(model.state_dict(), f'../model_weights/{model_name}_distilled_best_{alpha}_{temperature}.pth')
+                    torch.save(
+                        model.state_dict(),
+                        f"../model_weights/{model_name}_distilled_best_{alpha}_{temperature}.pth",
+                    )
                 else:
-                    torch.save(model.state_dict(), f'../model_weights/{model_name}_best.pth')
+                    torch.save(
+                        model.state_dict(), f"../model_weights/{model_name}_best.pth"
+                    )
 
-
-    print(f'🎉 {model_name} 训练完成! 最佳准确率: {best_acc:.2f}%, Alpha={alpha}, Temperature={temperature}')
+    print(
+        f"🎉 {model_name} 训练完成! 最佳准确率: {best_acc:.2f}%, Alpha={alpha}, Temperature={temperature}"
+    )
 
     return model, best_acc
+
 
 def fast_test_model(model, testloader, device, num_batches=20):
     """快速测试（只测试部分数据以节省时间）"""
@@ -152,5 +167,4 @@ def fast_test_model(model, testloader, device, num_batches=20):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-    return 100. * correct / total
-
+    return 100.0 * correct / total

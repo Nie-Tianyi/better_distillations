@@ -203,7 +203,8 @@ def train_micro_student_with_distillation(teacher_model, alpha=0.7, temperature=
             print(f"✅ 新的最佳准确率: {best_acc:.2f}%")
 
     torch.save(
-        student_model.state_dict(), "../model_weights/student_kd_micro_resnet20_final.pth"
+        student_model.state_dict(),
+        "../model_weights/student_kd_micro_resnet20_final.pth",
     )
     print(f"🎉 MicroResNet（知识蒸馏）训练完成! 最佳准确率: {best_acc:.2f}%")
 

@@ -5,7 +5,7 @@ from tqdm import tqdm
 from utils.cifar100 import CIFAR100Data
 from utils.distill_loss import DistillationLoss
 from utils.res_net import ResNet56, ResNet20
-from utils.test_model import test_model
+from utils.criterion import test_model
 
 
 def train_teacher_model():
@@ -87,9 +87,6 @@ def train_teacher_model():
     return teacher_model, train_losses, test_accuracies
 
 
-
-
-
 def train_student_vanilla():
     """训练学生模型 ResNet-20（无知识蒸馏）"""
     print("🚀 开始训练学生模型 ResNet-20（无蒸馏）...")
@@ -160,9 +157,6 @@ def train_student_vanilla():
     print(f"🎉 学生模型（无蒸馏）训练完成! 最佳准确率: {best_acc:.2f}%")
 
     return student_model, best_acc
-
-
-
 
 
 def train_student_with_distillation(teacher_model):
@@ -247,8 +241,3 @@ def train_student_with_distillation(teacher_model):
     print(f"🎉 学生模型（知识蒸馏）训练完成! 最佳准确率: {best_acc:.2f}%")
 
     return student_model, best_acc
-
-
-
-
-

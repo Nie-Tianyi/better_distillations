@@ -14,3 +14,8 @@ def test_model(model, testloader, device):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
     return 100.0 * correct / total
+
+
+def count_parameters(model):
+    """计算模型参数数量"""
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
