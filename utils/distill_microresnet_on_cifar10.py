@@ -13,7 +13,7 @@ from utils.micro_resnet import MicroResNet
 from utils.persist import persist_learning_history
 from utils.res_net import ResNet20
 
-def train_microresnet_with_distillation():
+def train_microresnet_with_distillation(alpha=0.7, temperature=4):
     print("🚀 开始训练学生模型 MicroResNet（带知识蒸馏）...")
 
     model_path = "../new_model_weights/microresnet_cifar10_distill_best.pth"
@@ -58,10 +58,10 @@ def train_microresnet_with_distillation():
         student_model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4
     )
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 120, 160], gamma=0.1)
-    criterion = DistillationLoss(alpha=0.7, temperature=4)
+    criterion = DistillationLoss(alpha=alpha, temperature=temperature)
 
     # 训练记录
-    best_acc = 84.7
+    best_acc = 0
     loss_history = []
 
     # 训练循环
@@ -114,9 +114,13 @@ def train_microresnet_with_distillation():
 
         scheduler.step()
 
-    persist_learning_history(loss_history, "microresnet_loss")
+    persist_learning_history(loss_history, f"microresnet_loss_alpha_{alpha}_temperature_{temperature}")
+    with open("gridsearch_res.txt", "a") as f:
+        f.write(f"alpha={alpha}, temperature={temperature}, best_acc={best_acc:.2f}\n")
 
 if __name__ == '__main__':
-    train_microresnet_with_distillation()
+    for alpha in [0.3, 0.5, 0.7, 0.9]:
+        for temperature in [2, 4, 8]:
+            train_microresnet_with_distillation(alpha, temperature)
 
 
