@@ -2,8 +2,9 @@ from datetime import time
 
 import torch
 from torch import nn, optim
+from tqdm import tqdm
 
-from utils.base_model import count_parameters, DistillationLoss
+from utils.base_model import DistillationLoss
 from utils.cifar100 import CIFAR100Data
 
 
@@ -54,7 +55,7 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
     """快速训练模型（目标：10分钟内）"""
     print(f"🚀 开始快速训练 {model_name}...")
 
-    data_manager = CIFAR100Data(batch_size=64)  # 较小的batch_size
+    data_manager = CIFAR100Data(batch_size=2048)  # 较小的batch_size
     trainloader, testloader = data_manager.get_dataloaders()
 
     # 设备设置
@@ -83,7 +84,7 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
     best_acc = 0
 
     # 快速训练循环
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         model.train()
         running_loss = 0.0
         correct = 0
@@ -131,7 +132,7 @@ def fast_train_model(model, model_name, teacher_model=None, use_distillation=Fal
                     torch.save(model.state_dict(), f'../model_weights/{model_name}_best.pth')
 
 
-    print(f'🎉 {model_name} 训练完成! 最佳准确率: {best_acc:.2f}%')
+    print(f'🎉 {model_name} 训练完成! 最佳准确率: {best_acc:.2f}%, Alpha={alpha}, Temperature={temperature}')
 
     return model, best_acc
 
@@ -152,3 +153,4 @@ def fast_test_model(model, testloader, device, num_batches=20):
             correct += predicted.eq(targets).sum().item()
 
     return 100. * correct / total
+
