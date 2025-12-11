@@ -1,4 +1,4 @@
-# 线性量化加速蒸馏
+# 蒸馏改进方法
 > 
 > The project is configured to use CUDA 13.0 with the following setup:
 >
